@@ -1,5 +1,5 @@
 {
-	"flashicon": "http://www.mysensors.org/icon/Water.png",
+	"default_icon": "http://www.mysensors.org/icon/Water.png",
 	"imgIconBody": "",
 	"imgIconDimmable": "",
 	"imgIconTurnable": "",
@@ -97,7 +97,7 @@
 					"left": "0.8",
 					"Label": {
 						"lang_tag": "flow",
-						"text": "x/min"
+						"text": "L/min"
 					},
 					"Display": {
 						"Top": 60,
@@ -147,7 +147,7 @@
 					"left": "1.2",
 					"Label": {
 						"lang_tag": "volume",
-						"text": " m3"
+						"text": " Litres"
 					},
 					"Display": {
 						"Top": 90,
