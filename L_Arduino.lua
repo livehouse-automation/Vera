@@ -81,9 +81,7 @@ local tDeviceTypes = {
 	HVAC = {29, "urn:schemas-upnp-org:device:HVAC_ZoneThermostat:1", "D_HVAC_ZoneThermostat1.xml", "HVAC "}, 
 
 	MULTIMETER = {30, "urn:schemas-arduino-cc:device:EnergyMetering:1", "D_Multimeter1.xml", "Multimeter "}, -- Handles V_VOLTAGE, V_CURRENT, V_IMPEDANCE 
---	SPRINKLER =  {31,  "urn:schemas-upnp-org:device:BinaryLight:1", "D_BinaryLight1.xml", "Sprinkler "}, -- Not implemented, using binary light for now
 	SPRINKLER =  {31,  "urn:schemas-micasaverde-com:device:WaterValve:1", "D_WaterValve1.xml", "Sprinkler "}, -- LiveHouse Automation - modified for Retic Controllers
---	WATER_LEAK = {32,  "urn:schemas-micasaverde-com:device:DoorSensor:1", "D_DoorSensor1.xml", "Water leak "}, -- Not implemented, using door sensor for now
 	WATER_LEAK = {32,  "urn:schemas-micasaverde-com:device:FloodSensor:1", "D_FloodSensor1.xml", "Water leak "}, -- LiveHouse Automation - for Pool Manager
 	SOUND = {33, "urn:schemas-micasaverde-com:device:LightSensor:1", "D_LightSensor1.xml", "Sound "},  --  V_LEVEL (dB) not implemented, using light sensor for now 
 	VIBRATION = {34,  "urn:schemas-micasaverde-com:device:DoorSensor:1", "D_DoorSensor1.xml", "Vibration "}, -- V_LEVEL (Hz) not implemented, using light sensor for now
@@ -237,7 +235,10 @@ function setVariableIfChanged(serviceId, name, value, deviceId)
     
     if ((value ~= curValue) or (curValue == nil) or (serviceId == "urn:micasaverde-com:serviceId:SceneController1")) then
         luup.variable_set(serviceId, name, value, deviceId)
-        return true
+		if ((serviceId == "urn:upnp-org:serviceId:TemperatureSetpoint1_Heat") or (serviceId == "urn:upnp-org:serviceId:TemperatureSetpoint1_Cool")) then	
+			luup.variable_set("urn:upnp-org:serviceId:TemperatureSetpoint1", name, value, deviceId)	
+		end
+	return true
         
     else
         return false
@@ -590,10 +591,14 @@ end
 -- Heater commands
 function SetpointHeat(device, NewCurrentSetpoint)
 	sendCommand(luup.devices[device].id,"HVAC_SETPOINT_HEAT",NewCurrentSetpoint)
+	sendCommand(luup.devices[device].id,"LEVEL",NewCurrentSetpoint)	
+	luup.log("New Current SetPoint Heat " .. NewCurrentSetpoint)
 end
 
 function SetpointCool(device, NewCurrentSetpoint)
 	sendCommand(luup.devices[device].id,"HVAC_SETPOINT_COOL",NewCurrentSetpoint)
+	sendCommand(luup.devices[device].id,"LEVEL",NewCurrentSetpoint)	
+	luup.log("New Current SetPoint Cool " .. NewCurrentSetpoint)	
 end
 
 function SetOperatingMode(device, NewModeTarget)
