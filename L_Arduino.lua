@@ -591,14 +591,14 @@ end
 -- Heater commands
 function SetpointHeat(device, NewCurrentSetpoint)
 	sendCommand(luup.devices[device].id,"HVAC_SETPOINT_HEAT",NewCurrentSetpoint)
-	sendCommand(luup.devices[device].id,"LEVEL",NewCurrentSetpoint)	
+	sendCommand(luup.devices[device].id,"LEVEL",NewCurrentSetpoint)
 	luup.log("New Current SetPoint Heat " .. NewCurrentSetpoint)
 end
 
 function SetpointCool(device, NewCurrentSetpoint)
 	sendCommand(luup.devices[device].id,"HVAC_SETPOINT_COOL",NewCurrentSetpoint)
-	sendCommand(luup.devices[device].id,"LEVEL",NewCurrentSetpoint)	
-	luup.log("New Current SetPoint Cool " .. NewCurrentSetpoint)	
+	sendCommand(luup.devices[device].id,"LEVEL",NewCurrentSetpoint)
+	luup.log("New Current SetPoint Cool " .. NewCurrentSetpoint)
 end
 
 function SetOperatingMode(device, NewModeTarget)
