@@ -81,8 +81,8 @@ local tDeviceTypes = {
 	HVAC = {29, "urn:schemas-upnp-org:device:HVAC_ZoneThermostat:1", "D_HVAC_ZoneThermostat1.xml", "HVAC "}, 
 
 	MULTIMETER = {30, "urn:schemas-arduino-cc:device:EnergyMetering:1", "D_Multimeter1.xml", "Multimeter "}, -- Handles V_VOLTAGE, V_CURRENT, V_IMPEDANCE 
-	SPRINKLER =  {31,  "urn:schemas-upnp-org:device:BinaryLight:1", "D_BinaryLight1.xml", "Sprinkler "}, -- Not implemented, using binary light for now
-	WATER_LEAK = {32,  "urn:schemas-micasaverde-com:device:DoorSensor:1", "D_DoorSensor1.xml", "Water leak "}, -- Not implemented, using door sensor for now
+	SPRINKLER =  {31,  "urn:schemas-micasaverde-com:device:WaterValve:1", "D_WaterValve1.xml", "Sprinkler "}, -- LiveHouse Automation - modified for Retic Controllers
+	WATER_LEAK = {32,  "urn:schemas-micasaverde-com:device:FloodSensor:1", "D_FloodSensor1.xml", "Water leak "}, -- LiveHouse Automation - for Pool Manager
 	SOUND = {33, "urn:schemas-micasaverde-com:device:LightSensor:1", "D_LightSensor1.xml", "Sound "},  --  V_LEVEL (dB) not implemented, using light sensor for now 
 	VIBRATION = {34,  "urn:schemas-micasaverde-com:device:DoorSensor:1", "D_DoorSensor1.xml", "Vibration "}, -- V_LEVEL (Hz) not implemented, using light sensor for now
 	MOISTURE = {35,  "urn:schemas-micasaverde-com:device:LightSensor:1", "D_LightSensor1.xml", "Moisture "}, -- V_LEVEL (?) not implemented, using light sensor for now
@@ -139,9 +139,9 @@ local tVarTypes = {
 
 	SENSOR_ID =  	{42, "urn:micasaverde-com:serviceId:MySensor1", "SensorId", ""},
 	UNIT_PREFIX =  	{43, "urn:micasaverde-com:serviceId:MySensor1", "UnitPrefix", ""}, -- Currently unused in GUI on vera
-	HVAC_FLOW_MODE = {44, "urn:upnp-org:serviceId:HVAC_FanOperatingMode1", "Mode", "" },
+	HVAC_SETPOINT_COOL = {44, "urn:upnp-org:serviceId:TemperatureSetpoint1_Cool", "CurrentSetpoint", "" },
 	HVAC_SETPOINT_HEAT = {45, "urn:upnp-org:serviceId:TemperatureSetpoint1_Heat", "CurrentSetpoint", "" },
-	HVAC_SETPOINT_COOL = {46, "urn:upnp-org:serviceId:TemperatureSetpoint1_Cool", "CurrentSetpoint", "" },
+	HVAC_FLOW_MODE = {46, "urn:upnp-org:serviceId:HVAC_FanOperatingMode1", "Mode", "" },
 	TEXT =          {47, "urn:upnp-org:serviceId:LcdText1", "LcdText", "" },	-- S_INFO. Text message to display on LCD or controller device
 	CUSTOM =        {48, "urn:micasaverde-com:serviceId:MySensor1", "Custom", "" }, -- Not implemented S_CUSTOM device type.
 	POSITION =      {49, "urn:micasaverde-com:serviceId:MySensor1", "Position", "" },  -- Not implemented  GPS position and altitude
@@ -156,21 +156,40 @@ local tVeraTypes = {
 
 local tInternalLookupNumType = {}
 local tInternalTypes = {
-	BATTERY_LEVEL = {0, "urn:micasaverde-com:serviceId:HaDevice1", "BatteryLevel", "" },
-	TIME = 			{1, nil, nil, nil},
- 	VERSION = 		{2, "urn:upnp-arduino-cc:serviceId:arduinonode1", "ArduinoLibVersion", ""},
- 	ID_REQUEST = 	{3, nil, nil, nil},
- 	ID_RESPONSE = 	{4, nil, nil, nil},
- 	INCLUSION_MODE ={5, "urn:upnp-arduino-cc:serviceId:arduino1", "InclusionMode", "0"},
- 	CONFIG =        {6, "urn:upnp-arduino-cc:serviceId:arduinonode1", "RelayNode", ""},
- 	PING = 			{7, nil, nil, nil },
- 	PING_ACK =      {8, nil, nil, nil },
- 	LOG_MESSAGE =   {9, nil, nil, nil },
- 	CHILDREN =  	{10, "urn:upnp-arduino-cc:serviceId:arduinonode1", "Children", "0"},
- 	SKETCH_NAME    = {11, "urn:upnp-arduino-cc:serviceId:arduinonode1", "SketchName", ""},
-	SKETCH_VERSION = {12, "urn:upnp-arduino-cc:serviceId:arduinonode1", "SketchVersion", ""},
-	REBOOT         = {13, nil, nil, nil}, 
-	GATEWAY_READY  = {14, nil, nil, nil}
+	BATTERY_LEVEL = 		{0, "urn:micasaverde-com:serviceId:HaDevice1", "BatteryLevel", "" },
+	TIME = 					{1, nil, nil, nil},
+ 	VERSION = 				{2, "urn:upnp-arduino-cc:serviceId:arduinonode1", "ArduinoLibVersion", ""},
+ 	ID_REQUEST = 			{3, nil, nil, nil},
+ 	ID_RESPONSE = 			{4, nil, nil, nil},
+ 	INCLUSION_MODE =		{5, "urn:upnp-arduino-cc:serviceId:arduino1", "InclusionMode", "0"},
+ 	CONFIG =       	 		{6, "urn:upnp-arduino-cc:serviceId:arduinonode1", "RelayNode", ""},
+ 	PING = 					{7, nil, nil, nil },
+ 	PING_ACK =      		{8, nil, nil, nil },
+ 	LOG_MESSAGE =   		{9, nil, nil, nil },
+ 	CHILDREN =  			{10, "urn:upnp-arduino-cc:serviceId:arduinonode1", "Children", "0"},
+ 	SKETCH_NAME    = 		{11, "urn:upnp-arduino-cc:serviceId:arduinonode1", "SketchName", ""},
+	SKETCH_VERSION = 		{12, "urn:upnp-arduino-cc:serviceId:arduinonode1", "SketchVersion", ""},
+	REBOOT         = 		{13, nil, nil, nil}, 
+	GATEWAY_READY  = 		{14, nil, nil, nil},
+	SIGNING_PRESENTATION =	{15, nil, nil, nil},
+	NONCE_REQUEST		= 	{16, nil, nil, nil},
+	NONCE_RESPONSE		= 	{17, nil, nil, nil},
+	HEARTBEAT_REQUEST	=	{18, nil, nil, nil},
+	PRESENTATION		=	{19, nil, nil, nil},
+	DISCOVER_REQUEST	= 	{20, nil, nil, nil},
+	DISCOVER_RESPONSE	= 	{21, nil, nil, nil},
+	HEARTBEAT_RESPONSE	= 	{22, nil, nil, nil}, 
+	LOCKED				=	{23, nil, nil, nil},
+	PING				=	{24, nil, nil, nil},
+	PONG				=	{25, nil, nil, nil},
+	REGISTRATION_REQUEST=	{26, nil, nil, nil},
+	REGISTRATION_RESPONSE=	{27, nil, nil, nil},
+	DEBUG				=	{28, nil, nil, nil},
+	SIGNAL_REPORT_REQUEST =	{29, nil, nil, nil},
+	SIGNAL_REPORT_REVERSE =	{30, nil, nil, nil},
+	SIGNAL_REPORT_RESPONSE=	{31, nil, nil, nil},
+	PRE_SLEEP_NOTIFICATION=	{32, nil, nil, nil},
+	POST_SLEEP_NOTIFICATION={33, nil, nil, nil}
 }
 
 
@@ -216,7 +235,10 @@ function setVariableIfChanged(serviceId, name, value, deviceId)
     
     if ((value ~= curValue) or (curValue == nil) or (serviceId == "urn:micasaverde-com:serviceId:SceneController1")) then
         luup.variable_set(serviceId, name, value, deviceId)
-        return true
+		if ((serviceId == "urn:upnp-org:serviceId:TemperatureSetpoint1_Heat") or (serviceId == "urn:upnp-org:serviceId:TemperatureSetpoint1_Cool")) then
+			luup.variable_set("urn:upnp-org:serviceId:TemperatureSetpoint1", name, value, deviceId)
+		end
+	return true
         
     else
         return false
@@ -367,7 +389,7 @@ local function processInternalMessage(incomingData, iChildId, iAltId, incomingNo
 	local varType = tInternalLookupNumType[index]
 	local var = tInternalTypes[varType]
 
-	if (varType == "VERSION" and iAltId == "0;0") then
+	if (varType == "VERSION" and iAltId == "0;255") then
 		-- Store version of Arduino Gateway
 		GATEWAY_VERSION = data
 		setVariableIfChanged(ARDUINO_SID, "ArduinoLibVersion", GATEWAY_VERSION, ARDUINO_DEVICE)
@@ -377,6 +399,14 @@ local function processInternalMessage(incomingData, iChildId, iAltId, incomingNo
 	elseif (varType == "TIME") then
 		-- Request time was sent from one of the sensors
 		sendInternalCommand(iAltId,"TIME",os.time() + 3600 * luup.timezone)
+	elseif (varType == "HEARTBEAT_REQUEST") then
+		-- Recieved heartbeat from one of the sensors (LiveHouse Automation Edit)
+		-- setLastUpdate(iChildId)
+		log("Heartbeat Request '" .. table.concat(incomingData, ";") .. "' for child: " .. (iChildId ~= nil and iChildId or "nil"), 2)
+	elseif (varType == "HEARTBEAT_RESPONSE") then
+		-- Recieved heartbeat from one of the sensors (LiveHouse Automation Edit)
+		setLastUpdate(iChildId)
+		log("Heartbeat Response '" .. table.concat(incomingData, ";") .. "' for child: " .. (iChildId ~= nil and iChildId or "nil"), 2)		
 	elseif (varType == "ID_REQUEST") then
 		-- Determine next available radioid and sent it to the sensor
 		sendInternalCommand(iAltId,"ID_RESPONSE",nextAvailiableRadioId())
@@ -464,6 +494,7 @@ local function processInternalMessage(incomingData, iChildId, iAltId, incomingNo
 		log("Log: "..data)
 	else
 		log("Incoming internal command '" .. table.concat(incomingData, ";") .. "' discarded for child: " .. (iChildId ~= nil and iChildId or "nil"), 2)
+		-- See MyMessages.h for definitions
 	end
 end
 
@@ -560,10 +591,14 @@ end
 -- Heater commands
 function SetpointHeat(device, NewCurrentSetpoint)
 	sendCommand(luup.devices[device].id,"HVAC_SETPOINT_HEAT",NewCurrentSetpoint)
+	sendCommand(luup.devices[device].id,"LEVEL",NewCurrentSetpoint)
+	luup.log("New Current SetPoint Heat " .. NewCurrentSetpoint)
 end
 
 function SetpointCool(device, NewCurrentSetpoint)
 	sendCommand(luup.devices[device].id,"HVAC_SETPOINT_COOL",NewCurrentSetpoint)
+	sendCommand(luup.devices[device].id,"LEVEL",NewCurrentSetpoint)
+	luup.log("New Current SetPoint Cool " .. NewCurrentSetpoint)
 end
 
 function SetOperatingMode(device, NewModeTarget)
@@ -635,6 +670,7 @@ end
 
 
 function startup(lul_device)
+	luup.set_failure(false)
 	ARDUINO_DEVICE = lul_device
 
 	setVariableIfChanged(ARDUINO_SID, "PluginVersion", PLUGIN_VERSION, ARDUINO_DEVICE)
@@ -643,12 +679,14 @@ function startup(lul_device)
     
     local ipAddress = string.match(ipa, '^(%d%d?%d?%.%d%d?%d?%.%d%d?%d?%.%d%d?%d?)')
     local ipPort    = string.match(ipa, ':(%d+)$')
-    
+
+    setVariableIfChanged(ARDUINO_SID, "GWAddress", '-', ARDUINO_DEVICE)
     if (ipAddress ~= nil) then
        if (ipPort == nil) then ipPort = IP_PORT end
 
-	   log('Using network connection: IP address is '..ipAddress..':'..ipPort)
-       luup.io.open(ARDUINO_DEVICE, ipAddress, ipPort)
+      log('Using network connection: IP address is '..ipAddress..':'..ipPort)
+      luup.io.open(ARDUINO_DEVICE, ipAddress, ipPort)
+      setVariableIfChanged(ARDUINO_SID, "GWAddress", ipAddress..':'..ipPort, ARDUINO_DEVICE)
 
     else -- use serial
        log('Trying for a serial connection')
@@ -670,6 +708,7 @@ function startup(lul_device)
 	   	return false
 	   end
 	   log("Baud is ".. BAUD_RATE)
+           setVariableIfChanged(ARDUINO_SID, "GWAddress", IOdevice..'('..BAUD_RATE..')', ARDUINO_DEVICE)
     end
 
 	for i=1,MAX_RADIO_ID do 
